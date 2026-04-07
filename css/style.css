@@ -1,0 +1,97 @@
+/* ============================================================
+   Hitster Bingo – Custom Styles
+   Tailwind CDN handles the vast majority of styling;
+   this file adds only what Tailwind utilities cannot express.
+   ============================================================ */
+
+/* ----- Scrollbar hiding (mobile & desktop) ----- */
+html,
+body {
+  overflow-x: hidden;
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE / Edge (legacy) */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;               /* Chrome / Safari / newer Edge */
+}
+
+/* ----- Disco gradient for the main heading ----- */
+.disco-gradient {
+  background: linear-gradient(
+    135deg,
+    #f9a8d4 0%,   /* pink-300 */
+    #c084fc 30%,  /* purple-400 */
+    #818cf8 55%,  /* indigo-400 */
+    #38bdf8 80%,  /* sky-400 */
+    #f9a8d4 100%  /* pink-300 */
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ----- Bingo cell base ----- */
+.bingo-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.375rem;   /* rounded-md */
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.bingo-cell:active {
+  transform: scale(0.95);
+}
+
+/* Category label inside each cell */
+.bingo-cell .cell-label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  padding: 4px 6px;
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ----- Checked state ----- */
+.bingo-cell.is-checked {
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.85);
+}
+
+/* Stamp overlay */
+.bingo-cell.is-checked::after {
+  content: "✓";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 900;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.52);
+  border-radius: inherit;
+  pointer-events: none;
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.7), 0 2px 6px rgba(0, 0, 0, 0.6);
+  animation: stamp-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: scale(2) rotate(-12deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
