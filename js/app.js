@@ -46,6 +46,35 @@ const TILES = CATEGORIES.flatMap((cat) =>
 );
 
 const STORAGE_KEY = 'hitsterGameState';
+const BOARD_SIZE = 5;
+const TILE_COUNT = BOARD_SIZE * BOARD_SIZE;
+const MAX_CATEGORY_PER_LINE = 2;
+const WINNING_LINES = buildWinningLineIndices();
+const LINES_BY_INDEX = Array.from({ length: TILE_COUNT }, () => []);
+const ADJACENT_INDICES = Array.from({ length: TILE_COUNT }, (_, index) => {
+  const row = Math.floor(index / BOARD_SIZE);
+  const col = index % BOARD_SIZE;
+  const neighbors = [];
+
+  if (row > 0) neighbors.push(index - BOARD_SIZE);
+  if (row < BOARD_SIZE - 1) neighbors.push(index + BOARD_SIZE);
+  if (col > 0) neighbors.push(index - 1);
+  if (col < BOARD_SIZE - 1) neighbors.push(index + 1);
+
+  return neighbors;
+});
+
+WINNING_LINES.forEach((line) => {
+  line.forEach((index) => {
+    LINES_BY_INDEX[index].push(line);
+  });
+});
+
+const PLACEMENT_ORDER = Array.from({ length: TILE_COUNT }, (_, index) => index).sort(
+  (a, b) =>
+    LINES_BY_INDEX[b].length - LINES_BY_INDEX[a].length ||
+    ADJACENT_INDICES[b].length - ADJACENT_INDICES[a].length
+);
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -60,7 +89,90 @@ function shuffle(array) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
+
   return arr;
+}
+
+function buildWinningLineIndices() {
+  const lines = [];
+
+  for (let row = 0; row < BOARD_SIZE; row++) {
+    lines.push(
+      Array.from({ length: BOARD_SIZE }, (_, col) => row * BOARD_SIZE + col)
+    );
+  }
+
+  for (let col = 0; col < BOARD_SIZE; col++) {
+    lines.push(
+      Array.from({ length: BOARD_SIZE }, (_, row) => row * BOARD_SIZE + col)
+    );
+  }
+
+  lines.push(
+    Array.from({ length: BOARD_SIZE }, (_, i) => i * (BOARD_SIZE + 1))
+  );
+  lines.push(
+    Array.from({ length: BOARD_SIZE }, (_, i) => (i + 1) * (BOARD_SIZE - 1))
+  );
+
+  return lines;
+}
+
+function generateConstrainedTiles() {
+  const tiles = Array(TILE_COUNT).fill(null);
+  const remaining = TILES.reduce((counts, tile) => {
+    counts[tile.id] = (counts[tile.id] || 0) + 1;
+    return counts;
+  }, {});
+
+  if (!placeTile(tiles, remaining, 0)) {
+    throw new Error('Unable to generate a valid bingo board.');
+  }
+
+  return tiles;
+}
+
+function placeTile(tiles, remaining, step) {
+  if (step === PLACEMENT_ORDER.length) return true;
+
+  const index = PLACEMENT_ORDER[step];
+  const candidates = shuffle(
+    CATEGORIES.filter(
+      (category) =>
+        remaining[category.id] > 0 &&
+        canPlaceCategory(tiles, index, category.id)
+    )
+  ).sort((a, b) => remaining[b.id] - remaining[a.id]);
+
+  for (const category of candidates) {
+    tiles[index] = { ...category };
+    remaining[category.id]--;
+
+    if (placeTile(tiles, remaining, step + 1)) {
+      return true;
+    }
+
+    remaining[category.id]++;
+    tiles[index] = null;
+  }
+
+  return false;
+}
+
+function canPlaceCategory(tiles, index, categoryId) {
+  if (
+    ADJACENT_INDICES[index].some(
+      (neighborIndex) => tiles[neighborIndex]?.id === categoryId
+    )
+  ) {
+    return false;
+  }
+
+  return LINES_BY_INDEX[index].every(
+    (line) =>
+      line.filter((lineIndex) => tiles[lineIndex]?.id === categoryId).length <
+      MAX_CATEGORY_PER_LINE
+  );
 }
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
@@ -81,11 +193,11 @@ function loadState() {
       // Basic validation
       if (
         Array.isArray(parsed.tiles) &&
-        parsed.tiles.length === 25 &&
+        parsed.tiles.length === TILE_COUNT &&
         Array.isArray(parsed.checked) &&
-        parsed.checked.length === 25 &&
+        parsed.checked.length === TILE_COUNT &&
         Array.isArray(parsed.values) &&
-        parsed.values.length === 25
+        parsed.values.length === TILE_COUNT
       ) {
         if (!Array.isArray(parsed.wonLines)) parsed.wonLines = [];
         return parsed;
@@ -101,9 +213,9 @@ function loadState() {
 
 function generateBoard() {
   state = {
-    tiles: shuffle(TILES),
-    checked: Array(25).fill(false),
-    values: Array(25).fill(''),
+    tiles: generateConstrainedTiles(),
+    checked: Array(TILE_COUNT).fill(false),
+    values: Array(TILE_COUNT).fill(''),
     scratchpad: '',
     wonLines: [],
   };
@@ -167,27 +279,7 @@ function toggleCell(index) {
 /** Returns an array of winning line indices (or empty if none). */
 function getWinningLines() {
   const c = state.checked;
-  const lines = [];
-
-  // Rows
-  for (let r = 0; r < 5; r++) {
-    const row = [0, 1, 2, 3, 4].map((col) => r * 5 + col);
-    if (row.every((i) => c[i])) lines.push(row);
-  }
-
-  // Columns
-  for (let col = 0; col < 5; col++) {
-    const column = [0, 1, 2, 3, 4].map((r) => r * 5 + col);
-    if (column.every((i) => c[i])) lines.push(column);
-  }
-
-  // Diagonals
-  const diag1 = [0, 6, 12, 18, 24];
-  const diag2 = [4, 8, 12, 16, 20];
-  if (diag1.every((i) => c[i])) lines.push(diag1);
-  if (diag2.every((i) => c[i])) lines.push(diag2);
-
-  return lines;
+  return WINNING_LINES.filter((line) => line.every((i) => c[i]));
 }
 
 function checkBingo() {
