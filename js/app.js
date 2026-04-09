@@ -360,6 +360,15 @@ document.addEventListener('DOMContentLoaded', () => {
     saveState();
   });
 
+  // Wire up the "Eingabe Löschen" button
+  document.getElementById('clear-scratchpad-btn').addEventListener('click', () => {
+    pad.value = '';
+    state.scratchpad = '';
+    autoResizePad(pad);
+    saveState();
+    pad.focus();
+  });
+
   // Load or generate the board
   const saved = loadState();
   if (saved) {
