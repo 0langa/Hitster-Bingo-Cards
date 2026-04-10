@@ -450,6 +450,13 @@ function showModeModal(isFirstGame) {
 
     card.appendChild(list);
 
+    // Visible CTA button
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mode-card-btn';
+    btn.textContent = '▶ Spielen';
+    card.appendChild(btn);
+
     // Click → start game with this mode
     card.addEventListener('click', () => {
       hideModeModal();
