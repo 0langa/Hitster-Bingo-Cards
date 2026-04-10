@@ -7,43 +7,106 @@
 
 // ─── Data Model ──────────────────────────────────────────────────────────────
 
-const CATEGORIES = [
-  {
-    id: 'artist',
-    label: 'Künstler / Band',
-    bg: 'bg-green-500',
-    text: 'text-white',
-  },
-  {
-    id: 'year4',
-    label: 'Jahr ± 4',
-    bg: 'bg-yellow-400',
-    text: 'text-black',
-  },
-  {
-    id: 'year2',
-    label: 'Jahr ± 2',
-    bg: 'bg-blue-500',
-    text: 'text-white',
-  },
-  {
-    id: 'before_after',
-    label: 'Vor/Nach 2000',
-    bg: 'bg-pink-500',
-    text: 'text-white',
-  },
-  {
-    id: 'decade',
-    label: 'Jahrzehnt',
-    bg: 'bg-purple-500',
-    text: 'text-white',
-  },
-];
+/**
+ * Category definition: { id, label, bg, text, description }
+ * - id:          unique key within a mode (used for constraint logic)
+ * - label:       short name shown on bingo cells
+ * - bg / text:   Tailwind color classes
+ * - description: one-line rule explanation shown in mode-selection UI
+ */
 
-// 5 tiles per category = 25 total
-const TILES = CATEGORIES.flatMap((cat) =>
-  Array.from({ length: 5 }, () => ({ ...cat }))
-);
+/** @type {Record<string, { name: string, categories: Array<{id:string,label:string,bg:string,text:string,description:string}> }>} */
+const GAME_MODES = {
+  anfaenger: {
+    name: 'Anfänger',
+    categories: [
+      {
+        id: 'solo_group',
+        label: 'Solokünstler/Gruppe',
+        bg: 'bg-green-500',
+        text: 'text-white',
+        description: 'Solokünstler oder Gruppe/Band?',
+      },
+      {
+        id: 'year4',
+        label: 'Jahr ± 4',
+        bg: 'bg-yellow-400',
+        text: 'text-black',
+        description: 'Erscheinungsjahr ± 4 Jahre erraten',
+      },
+      {
+        id: 'year2',
+        label: 'Jahr ± 2',
+        bg: 'bg-blue-500',
+        text: 'text-white',
+        description: 'Erscheinungsjahr ± 2 Jahre erraten',
+      },
+      {
+        id: 'before_after',
+        label: 'Vor/Nach 2000',
+        bg: 'bg-pink-500',
+        text: 'text-white',
+        description: 'Vor oder nach dem Jahr 2000?',
+      },
+      {
+        id: 'decade',
+        label: 'Jahrzehnt',
+        bg: 'bg-purple-500',
+        text: 'text-white',
+        description: 'Das richtige Jahrzehnt nennen',
+      },
+    ],
+  },
+  profi: {
+    name: 'Profi',
+    categories: [
+      {
+        id: 'song_title',
+        label: 'Songtitel',
+        bg: 'bg-green-500',
+        text: 'text-white',
+        description: 'Den genauen Songtitel erraten',
+      },
+      {
+        id: 'artist_name',
+        label: 'Künstler/Bandname',
+        bg: 'bg-yellow-400',
+        text: 'text-black',
+        description: 'Den Künstler oder die Band benennen',
+      },
+      {
+        id: 'year3',
+        label: 'Jahr ± 3',
+        bg: 'bg-blue-500',
+        text: 'text-white',
+        description: 'Erscheinungsjahr ± 3 Jahre erraten',
+      },
+      {
+        id: 'exact_year',
+        label: 'Genaues Jahr',
+        bg: 'bg-pink-500',
+        text: 'text-white',
+        description: 'Das exakte Erscheinungsjahr nennen',
+      },
+      {
+        id: 'decade',
+        label: 'Jahrzehnt',
+        bg: 'bg-purple-500',
+        text: 'text-white',
+        description: 'Das richtige Jahrzehnt nennen',
+      },
+    ],
+  },
+};
+
+/** Returns the 25 tile definitions (5 per category) for a given mode. */
+function buildTilesForMode(modeId) {
+  const mode = GAME_MODES[modeId];
+  if (!mode) throw new Error(`Unknown game mode: ${modeId}`);
+  return mode.categories.flatMap((cat) =>
+    Array.from({ length: 5 }, () => ({ ...cat }))
+  );
+}
 
 const STORAGE_KEY = 'hitsterGameState';
 const BOARD_SIZE = 5;
@@ -78,7 +141,7 @@ const PLACEMENT_ORDER = Array.from({ length: TILE_COUNT }, (_, index) => index).
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
-/** @type {{ tiles: Array<{id: string, label: string, bg: string, text: string}>, checked: boolean[], values: string[], scratchpad: string }} */
+/** @type {{ mode: string, tiles: Array<{id:string,label:string,bg:string,text:string}>, checked: boolean[], values: string[], scratchpad: string, wonLines: string[] } | null} */
 let state = null;
 
 // ─── Fisher-Yates Shuffle ────────────────────────────────────────────────────
@@ -118,26 +181,28 @@ function buildWinningLineIndices() {
   return lines;
 }
 
-function generateConstrainedTiles() {
+function generateConstrainedTiles(modeId) {
+  const modeTiles = buildTilesForMode(modeId);
+  const categories = GAME_MODES[modeId].categories;
   const tiles = Array(TILE_COUNT).fill(null);
-  const remaining = TILES.reduce((counts, tile) => {
+  const remaining = modeTiles.reduce((counts, tile) => {
     counts[tile.id] = (counts[tile.id] || 0) + 1;
     return counts;
   }, {});
 
-  if (!placeTile(tiles, remaining, 0)) {
+  if (!placeTile(tiles, remaining, categories, 0)) {
     throw new Error('Unable to generate a valid bingo board.');
   }
 
   return tiles;
 }
 
-function placeTile(tiles, remaining, step) {
+function placeTile(tiles, remaining, categories, step) {
   if (step === PLACEMENT_ORDER.length) return true;
 
   const index = PLACEMENT_ORDER[step];
   const candidates = shuffle(
-    CATEGORIES.filter(
+    categories.filter(
       (category) =>
         remaining[category.id] > 0 &&
         canPlaceCategory(tiles, index, category.id)
@@ -148,7 +213,7 @@ function placeTile(tiles, remaining, step) {
     tiles[index] = { ...category };
     remaining[category.id]--;
 
-    if (placeTile(tiles, remaining, step + 1)) {
+    if (placeTile(tiles, remaining, categories, step + 1)) {
       return true;
     }
 
@@ -190,8 +255,10 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Basic validation
+      // Basic validation (includes mode field)
       if (
+        typeof parsed.mode === 'string' &&
+        GAME_MODES[parsed.mode] &&
         Array.isArray(parsed.tiles) &&
         parsed.tiles.length === TILE_COUNT &&
         Array.isArray(parsed.checked) &&
@@ -211,9 +278,10 @@ function loadState() {
 
 // ─── Board Generation ─────────────────────────────────────────────────────────
 
-function generateBoard() {
+function generateBoard(modeId) {
   state = {
-    tiles: generateConstrainedTiles(),
+    mode: modeId,
+    tiles: generateConstrainedTiles(modeId),
     checked: Array(TILE_COUNT).fill(false),
     values: Array(TILE_COUNT).fill(''),
     scratchpad: '',
@@ -324,21 +392,99 @@ function launchConfetti() {
   })();
 }
 
-// ─── Reset ────────────────────────────────────────────────────────────────────
+// ─── Mode Selection Modal ─────────────────────────────────────────────────────
 
-function resetGame() {
-  const confirmed = window.confirm(
-    'Neues Spiel starten? Der aktuelle Spielstand geht verloren.'
-  );
-  if (!confirmed) return;
+/** Tailwind bg class → raw hex for the category dot in the modal. */
+const BG_TO_HEX = {
+  'bg-green-500':  '#22c55e',
+  'bg-yellow-400': '#facc15',
+  'bg-blue-500':   '#3b82f6',
+  'bg-pink-500':   '#ec4899',
+  'bg-purple-500': '#a855f7',
+};
 
+/**
+ * Renders mode cards into the modal and shows it.
+ * @param {boolean} isFirstGame – true when no saved state exists (skip confirmation)
+ */
+function showModeModal(isFirstGame) {
+  const overlay = document.getElementById('mode-modal');
+  const container = document.getElementById('mode-cards');
+  container.innerHTML = '';
+
+  for (const [modeId, mode] of Object.entries(GAME_MODES)) {
+    const card = document.createElement('div');
+
+    // Subtle gradient background per mode
+    const gradientClass = modeId === 'anfaenger'
+      ? 'bg-gradient-to-br from-gray-700 to-gray-800'
+      : 'bg-gradient-to-br from-indigo-900 to-gray-800';
+
+    card.className = `mode-card ${gradientClass}`;
+
+    // Title
+    const title = document.createElement('div');
+    title.className = 'mode-title text-white';
+    title.textContent = mode.name;
+    card.appendChild(title);
+
+    // Category list
+    const list = document.createElement('div');
+    list.className = 'mode-categories';
+
+    mode.categories.forEach((cat) => {
+      const chip = document.createElement('div');
+      chip.className = 'mode-cat-chip text-gray-300';
+
+      const dot = document.createElement('span');
+      dot.className = 'mode-cat-dot';
+      dot.style.backgroundColor = BG_TO_HEX[cat.bg] || '#888';
+
+      const text = document.createElement('span');
+      text.textContent = `${cat.label} – ${cat.description}`;
+
+      chip.appendChild(dot);
+      chip.appendChild(text);
+      list.appendChild(chip);
+    });
+
+    card.appendChild(list);
+
+    // Click → start game with this mode
+    card.addEventListener('click', () => {
+      hideModeModal();
+      startNewGame(modeId);
+    });
+
+    container.appendChild(card);
+  }
+
+  overlay.classList.remove('hidden');
+}
+
+function hideModeModal() {
+  document.getElementById('mode-modal').classList.add('hidden');
+}
+
+function startNewGame(modeId) {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (_) {
     // ignore
   }
+  generateBoard(modeId);
+}
 
-  generateBoard();
+// ─── Reset ────────────────────────────────────────────────────────────────────
+
+function resetGame() {
+  if (state) {
+    const confirmed = window.confirm(
+      'Neues Spiel starten? Der aktuelle Spielstand geht verloren.'
+    );
+    if (!confirmed) return;
+  }
+  showModeModal(false);
 }
 
 // ─── Bootstrap ───────────────────────────────────────────────────────────────
@@ -351,6 +497,13 @@ function autoResizePad(el) {
 document.addEventListener('DOMContentLoaded', () => {
   // Wire up the "Neues Spiel" button
   document.getElementById('new-game-btn').addEventListener('click', resetGame);
+
+  // Close modal when clicking on the overlay backdrop (not the modal itself)
+  document.getElementById('mode-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget && state) {
+      hideModeModal();
+    }
+  });
 
   // Wire up the scratchpad
   const pad = document.getElementById('scratchpad');
@@ -369,12 +522,12 @@ document.addEventListener('DOMContentLoaded', () => {
     pad.focus();
   });
 
-  // Load or generate the board
+  // Load saved state or show mode selection for first game
   const saved = loadState();
   if (saved) {
     state = saved;
     renderBoard();
   } else {
-    generateBoard();
+    showModeModal(true);
   }
 });
