@@ -69,7 +69,7 @@ const GAME_MODES = {
       },
       {
         id: 'artist_name',
-        label: 'Künstler/Bandname',
+        label: 'Interpret',
         bg: 'bg-yellow-400',
         text: 'text-black',
         description: 'Den Künstler oder die Band benennen',
