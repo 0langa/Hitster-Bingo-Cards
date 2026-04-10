@@ -23,35 +23,35 @@ const GAME_MODES = {
       {
         id: 'solo_group',
         label: 'Solokünstler/Gruppe',
-        bg: 'bg-green-500',
+        bg: 'bg-neon-green',
         text: 'text-white',
         description: 'Solokünstler oder Gruppe/Band?',
       },
       {
         id: 'year4',
         label: 'Jahr ± 4',
-        bg: 'bg-yellow-400',
-        text: 'text-black',
+        bg: 'bg-neon-yellow',
+        text: 'text-white',
         description: 'Erscheinungsjahr ± 4 Jahre erraten',
       },
       {
         id: 'year2',
         label: 'Jahr ± 2',
-        bg: 'bg-blue-500',
+        bg: 'bg-neon-blue',
         text: 'text-white',
         description: 'Erscheinungsjahr ± 2 Jahre erraten',
       },
       {
         id: 'before_after',
         label: 'Vor/Nach 2000',
-        bg: 'bg-pink-500',
+        bg: 'bg-neon-pink',
         text: 'text-white',
         description: 'Vor oder nach dem Jahr 2000?',
       },
       {
         id: 'decade',
         label: 'Jahrzehnt',
-        bg: 'bg-purple-500',
+        bg: 'bg-neon-purple',
         text: 'text-white',
         description: 'Das richtige Jahrzehnt nennen',
       },
@@ -63,35 +63,35 @@ const GAME_MODES = {
       {
         id: 'song_title',
         label: 'Songtitel',
-        bg: 'bg-green-500',
+        bg: 'bg-neon-green',
         text: 'text-white',
         description: 'Den genauen Songtitel erraten',
       },
       {
         id: 'artist_name',
         label: 'Interpret',
-        bg: 'bg-yellow-400',
-        text: 'text-black',
+        bg: 'bg-neon-yellow',
+        text: 'text-white',
         description: 'Den Künstler oder die Band benennen',
       },
       {
         id: 'year3',
         label: 'Jahr ± 3',
-        bg: 'bg-blue-500',
+        bg: 'bg-neon-blue',
         text: 'text-white',
         description: 'Erscheinungsjahr ± 3 Jahre erraten',
       },
       {
         id: 'exact_year',
         label: 'Genaues Jahr',
-        bg: 'bg-pink-500',
+        bg: 'bg-neon-pink',
         text: 'text-white',
         description: 'Das exakte Erscheinungsjahr nennen',
       },
       {
         id: 'decade',
         label: 'Jahrzehnt',
-        bg: 'bg-purple-500',
+        bg: 'bg-neon-purple',
         text: 'text-white',
         description: 'Das richtige Jahrzehnt nennen',
       },
@@ -376,14 +376,14 @@ function launchConfetti() {
       angle: 60,
       spread: 55,
       origin: { x: 0 },
-      colors: ['#f9a8d4', '#c084fc', '#818cf8', '#38bdf8', '#fde047'],
+      colors: ['#4d9fd4', '#d4507a', '#a855f7', '#5b8def', '#22c55e'],
     });
     confetti({
       particleCount: 6,
       angle: 120,
       spread: 55,
       origin: { x: 1 },
-      colors: ['#f9a8d4', '#c084fc', '#818cf8', '#38bdf8', '#fde047'],
+      colors: ['#4d9fd4', '#d4507a', '#a855f7', '#5b8def', '#22c55e'],
     });
 
     if (Date.now() < end) {
@@ -396,11 +396,11 @@ function launchConfetti() {
 
 /** Tailwind bg class → raw hex for the category dot in the modal. */
 const BG_TO_HEX = {
-  'bg-green-500':  '#22c55e',
-  'bg-yellow-400': '#facc15',
-  'bg-blue-500':   '#3b82f6',
-  'bg-pink-500':   '#ec4899',
-  'bg-purple-500': '#a855f7',
+  'bg-neon-green':  '#22c55e',
+  'bg-neon-yellow': '#eab308',
+  'bg-neon-blue':   '#5b8def',
+  'bg-neon-pink':   '#ec4899',
+  'bg-neon-purple': '#a855f7',
 };
 
 /**
@@ -417,8 +417,8 @@ function showModeModal(isFirstGame) {
 
     // Subtle gradient background per mode
     const gradientClass = modeId === 'anfaenger'
-      ? 'bg-gradient-to-br from-gray-700 to-gray-800'
-      : 'bg-gradient-to-br from-indigo-900 to-gray-800';
+      ? 'bg-gradient-to-br from-[#161625] to-[#111119]'
+      : 'bg-gradient-to-br from-[#1a1530] to-[#111119]';
 
     card.className = `mode-card ${gradientClass}`;
 

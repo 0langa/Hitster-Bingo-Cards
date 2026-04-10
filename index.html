@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="bg-gray-900 min-h-screen flex flex-col items-center justify-start py-4 px-2">
+<body class="bg-[#0f0f17] min-h-screen flex flex-col items-center justify-start py-4 px-2">
 
   <!-- Header -->
   <header class="mb-4 text-center">
@@ -15,7 +15,7 @@
     <div class="mt-3 flex items-center justify-center gap-3">
       <button
         id="new-game-btn"
-        class="px-6 py-3 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-bold text-lg shadow-lg active:scale-95 transition-transform"
+        class="px-6 py-3 rounded-full border-2 border-[#d4507a]/60 bg-[#1a1a28] text-white font-bold text-lg shadow-lg hover:border-[#d4507a] active:scale-95 transition-all"
       >
         🎲 Neues Spiel
       </button>
@@ -23,7 +23,7 @@
         href="https://0langa.github.io/Hitster-Bingo-Wheel/"
         target="_blank"
         rel="noopener noreferrer"
-        class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold text-sm shadow-lg active:scale-95 transition-transform"
+        class="px-4 py-2 rounded-full border border-[#4d9fd4]/50 bg-[#1a1a28] text-white font-semibold text-sm shadow-lg hover:border-[#4d9fd4] active:scale-95 transition-all"
       >
         🎡 Kategorie-Rad
       </a>
@@ -34,14 +34,14 @@
   <main class="w-full max-w-lg">
     <div
       id="bingo-grid"
-      class="grid grid-cols-5 aspect-square gap-1 p-1 bg-gray-800 rounded-xl shadow-2xl"
+      class="grid grid-cols-5 aspect-square gap-1 p-1 bg-[#12121e] rounded-xl shadow-2xl"
     >
       <!-- Cells injected by app.js -->
     </div>
 
     <!-- Scratchpad -->
     <div class="mt-4">
-      <label for="scratchpad" class="block text-gray-300 text-sm font-semibold mb-1">
+      <label for="scratchpad" class="block text-gray-400 text-sm font-semibold mb-1">
         Antwort für die Runde:
       </label>
       <textarea
@@ -49,11 +49,11 @@
         rows="1"
         autocomplete="off"
         placeholder="Hier tippen…"
-        class="w-full rounded-lg bg-gray-700 text-white placeholder-gray-500 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none overflow-hidden"
+        class="w-full rounded-lg bg-[#1a1a28] text-white placeholder-gray-600 px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-[#d4507a]/60 border border-[#2a2a3a] resize-none overflow-hidden"
       ></textarea>
       <button
         id="clear-scratchpad-btn"
-        class="mt-2 px-4 py-2 rounded-lg bg-gray-600 text-gray-200 text-sm font-semibold hover:bg-gray-500 active:scale-95 transition-transform"
+        class="mt-2 px-4 py-2 rounded-lg bg-[#1a1a28] border border-[#2a2a3a] text-gray-300 text-sm font-semibold hover:border-[#3a3a4a] active:scale-95 transition-all"
       >
         🗑️ Eingabe Löschen
       </button>
